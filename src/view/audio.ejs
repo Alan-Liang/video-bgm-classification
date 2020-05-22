@@ -1,12 +1,13 @@
-<p><a href="javascript:void history.back()">返回</a> | <a href="/">返回首页</a></p>
+<%- await include('_partial/back') %>
 <h1><%= audio.name %></h1>
 <ul>
   <li>长度：<%= audio.duration.toFixed(2) %></li>
   <li>情感：<%= audio.mood %></li>
   <li>乐器：<%= audio.instruments.join(', ') %></li>
   <li>Tempo：<%= audio.tempo.toFixed(2) %></li>
+  <li>标签：<%= audio.tags.join(', ') || '（无）' %></li>
 </ul>
-<p style="display: flex; align-items: center;"><button onclick="wavesurfer.playPause()">播放/暂停</button>&nbsp;&nbsp;&nbsp;| 缩放：-<input id="zoom" type="range" min="1" max="200" value="0">+</p>
+<p style="display: flex; align-items: center;"><button onclick="wavesurfer.playPause()">播放/暂停</button>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<a href="/audio/<%= audio.id %>/edit">编辑</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;缩放：-<input id="zoom" type="range" min="1" max="200" value="0">+</p>
 <div id="wave-minimap" style="max-width: 720px;"></div>
 <div id="waveform" style="position: relative; max-width: 720px;"></div>
 <div id="wave-timeline" style="max-width: 720px;"></div>

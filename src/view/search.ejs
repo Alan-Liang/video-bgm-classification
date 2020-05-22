@@ -4,7 +4,7 @@
   const parsedQuery = parseQuery(query)
   const entries = await db.find({ ...parsedQuery, is: 'music', kiuid })
 %>
-<p><a href="javascript:void history.back()">返回</a> | <a href="/">返回首页</a></p>
+<%- await include('_partial/back') %>
 <hgroup>
   <h1>搜索结果</h1>
   <h2>查询：<%= query %></h2>

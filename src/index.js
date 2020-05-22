@@ -68,6 +68,7 @@ app.use(async (ctx, next) => {
   }
 })
 const requireLogin = (ctx, next) => ctx.state.user ? next() : ctx.redirect('/welcome')
+const requireOwnAudio = async (ctx, next) => ctx.params.id ? (ctx.state.audio = await db.findOne({ is: 'music', kiuid: ctx.state.user, id: ctx.params.id })) ? await next() : null : null
 app.use(bodyparser({ multipart: true, formidable: { maxFileSize: 1024 ** 3 } }))
 app.use(router.routes()).use(router.allowedMethods())
 render(app, {
@@ -92,12 +93,27 @@ router.get('/_audio/:id', requireLogin, async (ctx, next) => {
   if (await db.find({ is: 'music', kiuid: ctx.state.user, id: ctx.params.id, done: true }, { id: 1 })) await next()
   ctx.path = '/_audio' + ctx.path
 }, static(path.resolve(audioPath)))
-router.get('/audio/:id', requireLogin, async ctx => {
-  const { id } = ctx.params
-  const audio = await db.findOne({ is: 'music', kiuid: ctx.state.user, id, done: true })
-  if (!audio) return
-  const audioData = JSON.parse((await readFile(path.resolve(audioPath, id + '.json'))).toString())
+router.get('/audio/:id', requireLogin, requireOwnAudio, async ctx => {
+  const { audio } = ctx.state
+  const audioData = JSON.parse((await readFile(path.resolve(audioPath, audio.id + '.json'))).toString())
   await ctx.render('audio', { ...ctx.ejsOpts, title: audio.name, audio, audioData })
+})
+router.get('/audio/:id/edit', requireLogin, requireOwnAudio, async ctx => {
+  const { audio } = ctx.state
+  await ctx.render('audio-edit', { ...ctx.ejsOpts, title: '编辑 ' + audio.name, audio })
+})
+router.post('/audio/:id/edit', requireLogin, requireOwnAudio, async ctx => {
+  const id = ctx.params.id
+  if (!ctx.request.body) return ctx.body = '？？？'
+  const { name, mood, instruments, tempo, tags } = ctx.request.body
+  if (!name || !mood || Number.isNaN(tempo)) return ctx.body = '有未填写的必填项'
+  const patch = { name, mood, tempo: Number(tempo) }
+  if (!instruments) patch.instruments = []
+  else patch.instruments = Array.from(new Set(instruments.split(/,|，/).map(x => x.trim()).filter(x => !!x)))
+  if (!tags) patch.tags = []
+  else patch.tags = Array.from(new Set(tags.split(/,|，/).map(x => x.trim()).filter(x => !!x)))
+  await db.update({ is: 'music', id }, { $set: patch })
+  return ctx.redirect('/audio/' + id)
 })
 router.post('/api/add', requireLogin, async ctx => {
   let files = ctx.request.files.files

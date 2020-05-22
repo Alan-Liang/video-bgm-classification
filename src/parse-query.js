@@ -61,7 +61,7 @@ const parseExpr = expr => {
     sel = normalize((inMatch || aroundMatch || cmpMatch).groups.name, sel)
     if (sel) return sel
   }
-  return { $or: [ { name: { $regex: new RegExp(expr, 'i') } }, { mood: expr }, { instruments: { $elemMatch: expr } } ] }
+  return { $or: [ { name: { $regex: new RegExp(expr, 'i') } }, { mood: expr }, { instruments: { $elemMatch: expr } }, { tags: { $elemMatch: expr } } ] }
 }
 
 const parseTokens = tokens => {

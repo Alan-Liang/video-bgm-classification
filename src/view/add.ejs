@@ -1,4 +1,4 @@
-<p><a href="javascript:void history.back()">返回</a> | <a href="/">返回首页</a></p>
+<%- await include('_partial/back') %>
 <h1>添加音乐</h1>
 <form action="/api/add" method="POST" enctype="multipart/form-data">
   <input type="file" multiple name="files" accept="audio/*">
