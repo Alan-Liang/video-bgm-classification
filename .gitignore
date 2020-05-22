@@ -19,6 +19,13 @@ __pycache__
 *.flac.json
 audio-samples
 
+paper/paper.aux
+paper/paper.bbl
+paper/paper.blg
+paper/paper.log
+paper/paper.out
+paper/paper.pdf
+
 .vscode
 .idea
 

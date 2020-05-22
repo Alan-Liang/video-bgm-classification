@@ -1,0 +1,116 @@
+\documentclass[a4paper,utf8,10pt]{article}
+\usepackage[UTF8]{ctex}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{fontspec}
+\usepackage{fancyhdr}
+\usepackage{scalefnt}
+\usepackage{cite}
+
+\geometry{a4paper, top=2cm, left=1.5cm, bottom=1.8cm, right=1.4cm}
+\setlength{\headheight}{0pt}
+
+\pagestyle{empty}
+\linespread{1.56}
+
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+
+\scalefont{1.05}
+\newcommand{\sept}{\setlength\itemsep{-4pt}}
+
+\title{基于LSTM的视频配乐智能分类系统的研究与开发}
+\author{梁亚伦　　吴轩南　　李信义}
+\date{2020年5月22日}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+本研究基于LSTM 算法，来提取音乐的情绪、乐器等信息，实现用户音乐曲库的快速智能分类。根据实验，音乐特征提取效果和程序封装符合预期目标，但特征的准确率有待通过算法和使用的…改进来提高。
+\end{abstract}
+
+\paragraph{关键词} 情绪识别、乐器识别、音频分类、视频配乐
+\vspace{\baselineskip}
+
+\section{引言}
+
+随着视频社交网络的普及，剪辑微电影、Vlog 剪辑逐渐成为人们记录生活的途径。市面上流行的视频制作软件主要专注于视频剪辑和特效，在配乐方面通常曲库都比较简单，情绪和乐器上种类也比较单一。如果制作者想使用自己的音乐，又要花费很多的时间从众多歌曲中挑选自己心仪的音乐上，因此我们尝试制作一个智能音乐分类系统，可以自动识别曲库中所有音乐的乐器、情绪、时长等信息，识别成功后制作者可以在搜索框通过搜索所需音乐的特征来对音乐进行筛选，从而更快的找到适合的视频配乐。
+
+\section{研究方法及过程}
+\noindent\begin{tabular}{ r | l | p{13.5cm} }
+\hline
+序号 & 课题阶段         & 具体内容                                                                                        \\ \hline
+   1 & 配乐理论知识学习 & 了解电影/视频配乐的历史和传统分类，并根据现实中的需求加入专门针对当下视频制作者的分类。     \\ \hline
+   2 & 设计音乐分类体系 & 基于 Audio Library 上对音乐分类的标签进行去重、调整和添加，整理出后期用于分类的音乐分类体系。\\ \hline
+   3 & 准备训练资料     & 编写爬虫程序，从 YouTube Audio Library 上下载用于训练的音频文件和特征集。                      \\ \hline
+   4 & 提取关键信息     & 从音乐中提取特征，判断挑出其中对训练模型有用的特征，量化之后作为训练所需要的数据。            \\ \hline
+   5 & 初步进行训练     & 选取适当准确的模型，找出各个音乐元素与最终分类之间的关联。                                     \\ \hline
+   6 & 形成分类系统     &                                                                                                      \\ \hline
+   7 & 算法的完善优化   & 尝试不同的算法，进行进一步的调优等。                                                            \\ \hline
+   8 & 封装程序         & 制作可视化界面（网页），并完善最终用户体验。                                                    \\ \hline
+\end{tabular}
+
+\section{音乐分类体系}
+
+\noindent\begin{itemize}
+  \sept
+  \item 情绪：开心，伤感等 Audio Library 上所有的情绪。
+  \item 节奏变化：开头、中部和结尾的节奏快、中和慢。
+  \item 节奏空隙：停顿的数量、时长和停顿在曲目中的位置。
+  \item 乐器：使用来自 Audio Library 的乐器数据，并根据情况适当加入一些常用的的乐器。
+  \item 基调：包括一些音乐常有的流派和特性。没有严格的限制，主要强调带给人的主观感受，带给人一种怎样的对音乐氛围的理解。比如：未来感，电影感，嘻哈风，舞曲，电子乐，浪漫，当下流行音乐（最新的音乐），乡村风格的音乐，怀旧的流行音乐，上世纪流行音乐，经典摇滚，爵士，古典等等。
+\end{itemize}
+
+我们分别尝试了三种不同的算法：KNN、支持向量机和 LSTM，最终综合可行性和准确率，选择了 LSTM 算法，并将程序封装为网页。
+
+\section{程序具体步骤}
+\subsection{音乐特征提取}
+\paragraph{LibROSA 库} LibROSA 是一个用于音频、音乐分析、处理的 Python 工具包，一些常见的视频处理、特征提取、绘制声音图形等功能应有尽有，功能十分强大。
+我们所提取到的音乐特征：MFCC, Onset, Beat, Self Recurrence Matrix, Chroma, Viterbi
+我们暂时所利用的特征：Onset, Beat, Chroma, Viterbi
+
+\noindent\begin{itemize}
+  \sept
+  \item Onset Detection: 检测音符的起始点。
+  \item MFCC：Mel-frequency cepstral coefficients. 梅尔频率是将音频的频谱进行处理，从而得到适应人耳的音频频谱特征。MFCC即为梅尔频率倒谱系数。
+  \item Self Recurrence Matrix：自相似矩阵。可以用来判断歌曲中重复的部分。
+  \item Chroma：音色谱。用于提取音高与乐器的音色。
+  \item Viterbi：可以识别出乐曲之中截断的部分。
+\end{itemize}
+
+\subsection{机器学习算法}
+
+我们首先尝试了 K-近邻算法，出现了以下问题：准确度偏低（最高约 26.7\%），无法输入很大的数据；然后尝试了支持向量机（LIBSVM \cite{CC01a}）进行训练，出现了几乎相同的问题。
+
+\noindent\begin{itemize}
+  \sept
+  \item 数据正则化：对预处理得到的 onset、chroma 等数据进行取样并缩放到 0-1 的范围内，并和节拍数据构成输入的每首音乐 $1840\times 512$ 的数据矩阵；
+  \item 训练：输入使用 Tensorflow 搭建的双层 LSTM 网络（LSTM $\rightarrow$ dropout (0.2) $\rightarrow$ LSTM $\rightarrow$ 全连接(softmax)）使用 AdamOptimizer 进行训练；
+  \item 预测：加载网络模型并进行预测。
+\end{itemize}
+
+\section{结果与展望}
+\subsection{结果}
+
+经过最终的调试，程序对音乐特征进行识别的准确率大致如下：
+
+\begin{center}
+\begin{tabular}{ l | l | l }
+\hline
+音乐特征 & 情绪 & 乐器 \\ \hline
+准确率   & $85\%$  &    \\ \hline
+\end{tabular}
+\end{center}
+
+\subsection{未来的可能工作}
+尝试使用 MFCC、hpss 等音乐特征；使用其他神经网络进行实验，找到更适合的算法，以进一步提升程序对音乐特征（情绪、乐器等）识别的准确率；通过接入的用户登录，记录用户行为，在后期实现程序可以自动根据用户平时挑选音乐的风格偏好在首页智能推荐用户可能需要的配乐。
+
+\bibliography{paper}{}
+\bibliographystyle{plain}
+
+\end{document}
