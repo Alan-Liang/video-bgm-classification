@@ -1,0 +1,13 @@
+<%
+  const query = ctx.query.q
+  if (!query) ctx.redirect('/')
+  const parsedQuery = parseQuery(query)
+  const entries = await db.find({ ...parsedQuery, is: 'music', kiuid })
+%>
+<p><a href="javascript:void history.back()">返回</a> | <a href="/">返回首页</a></p>
+<hgroup>
+  <h1>搜索结果</h1>
+  <h2>查询：<%= query %></h2>
+</hgroup>
+<form action="/search" style="display: inline;"><input name="q" required value="<%= query %>"><button>Go</button></form><br>
+<%- await include('_partial/music-list', { entries, fallback: '没有符合条件的音乐' }) %>

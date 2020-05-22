@@ -1,0 +1,33 @@
+{
+  "name": "@alan-liang/music-gui",
+  "version": "0.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alan-Liang/music-gui.git"
+  },
+  "author": "Alan-Liang",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/Alan-Liang/music-gui/issues"
+  },
+  "homepage": "https://github.com/Alan-Liang/music-gui#readme",
+  "dependencies": {
+    "@keeer/kas-client": "github:keeer/kas-client-node",
+    "@koa/router": "^8.0.8",
+    "@tensorflow/tfjs-node": "^1.7.4",
+    "consola": "^2.12.1",
+    "dotenv": "^8.2.0",
+    "koa": "^2.11.0",
+    "koa-body": "^4.1.1",
+    "koa-ejs": "^4.3.0",
+    "koa-static": "^5.0.0",
+    "koa2-winston": "^3.1.1",
+    "nedb-promise": "^2.0.1",
+    "uuid": "^8.0.0"
+  }
+}

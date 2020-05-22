@@ -1,0 +1,131 @@
+<p><a href="javascript:void history.back()">返回</a> | <a href="/">返回首页</a></p>
+<h1><%= audio.name %></h1>
+<ul>
+  <li>长度：<%= audio.duration.toFixed(2) %></li>
+  <li>情感：<%= audio.mood %></li>
+  <li>乐器：<%= audio.instruments.join(', ') %></li>
+  <li>Tempo：<%= audio.tempo.toFixed(2) %></li>
+</ul>
+<p style="display: flex; align-items: center;"><button onclick="wavesurfer.playPause()">播放/暂停</button>&nbsp;&nbsp;&nbsp;| 缩放：-<input id="zoom" type="range" min="1" max="200" value="0">+</p>
+<div id="wave-minimap" style="max-width: 720px;"></div>
+<div id="waveform" style="position: relative; max-width: 720px;"></div>
+<div id="wave-timeline" style="max-width: 720px;"></div>
+<style>
+region[data-id^="viterbi"] {
+  top: auto !important;
+  bottom: 0 !important;
+}
+region[data-id^="viterbi-up"] { height: 16% !important; }
+region[data-id^="viterbi-down"] { height: 6% !important; }
+region[data-id^="beatmap"], region[data-id^="onset"] { width: 1px !important; opacity: 0; }
+.show-beats region[data-id^="beatmap"], .show-beats region[data-id^="onset"] { opacity: 1; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/wavesurfer.js@3.3.3/dist/wavesurfer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/wavesurfer.js@3.3.3/dist/plugin/wavesurfer.cursor.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/wavesurfer.js@3.3.3/dist/plugin/wavesurfer.timeline.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/wavesurfer.js@3.3.3/dist/plugin/wavesurfer.regions.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/wavesurfer.js@3.3.3/dist/plugin/wavesurfer.minimap.min.js"></script>
+<%
+  const edges = [ [], [] ], { viterbi } = audioData
+  for (let i = 0; i < viterbi.length - 1; i++) if (viterbi[i] !== viterbi[i + 1]) edges[viterbi[i]].push(i)
+  edges[1].push(null)
+%>
+<script>
+var viterbiEdges = <%- JSON.stringify(edges) %>
+var duration = <%- viterbi.length %>
+var beats = <%- JSON.stringify(audioData.beats) %>
+var onsetFrames = <%- JSON.stringify(audioData.onsetFrames) %>
+var audioFile = '/_audio/<%- audio.id %>'
+var sr = <%- audioData.sr %> || 22050
+var waveformEl = document.getElementById('waveform')
+var wavesurfer = WaveSurfer.create({
+  container: '#waveform',
+  cursorColor: 'red',
+  plugins: [
+    WaveSurfer.timeline.create({ container: '#wave-timeline' }),
+    WaveSurfer.cursor.create({
+      showTime: true,
+      opacity: 1,
+      customShowTimeStyle: {
+        'background-color': 'rgba(0, 0, 0, .6)',
+        color: '#fff',
+        padding: '2px',
+        'font-size': '10px',
+      }
+    }),
+    WaveSurfer.minimap.create({ container: '#wave-minimap' }),
+    WaveSurfer.regions.create({
+      regions: viterbiEdges[0].map(function (_, i) {
+        return {
+          start: viterbiEdges[0][i] * 512 / sr,
+          end: viterbiEdges[1][i] * 512 / sr,
+          color: 'rgba(255, 0, 0, 0.6)',
+          id: 'viterbi-up-' + i,
+          drag: false,
+          resize: false,
+        }
+      }).concat(viterbiEdges[1].map(function (_, i) {
+        return {
+          start: (viterbiEdges[1][i - 1] || 0) * 512 / sr,
+          end: (viterbiEdges[0][i] || duration) * 512 / sr,
+          color: 'rgba(0, 255, 0, 0.6)',
+          id: 'viterbi-down-' + i,
+          drag: false,
+          resize: false,
+        }
+      }), beats.map(function (beat, i) {
+        return {
+          start: beat * 512 / sr,
+          end: beat * 512 / sr,
+          color: 'rgba(255, 255, 0, 0.8)',
+          drag: false,
+          resize: false,
+          id: 'beatmap-' + i,
+        }
+      }), onsetFrames.map(function (frame, i) {
+        return {
+          start: frame * 512 / sr,
+          end: frame * 512 / sr,
+          color: 'rgba(0, 0, 255, 0.8)',
+          drag: false,
+          resize: false,
+          id: 'onset-' + i,
+        }
+      })),
+    })
+  ],
+})
+wavesurfer.load(audioFile)
+
+var debounce = function (func, wait) {
+  var lastCallTime = -1
+  var timeoutId = -1
+  return function () {
+    var time = Date.now()
+    var ctx = this
+    var callFunc = function () { return func.apply(ctx) }
+    if (lastCallTime < time - wait) {
+      lastCallTime = time
+      if (timeoutId > -1) clearTimeout(timeoutId)
+      timeoutId = -1
+      callFunc()
+      return
+    }
+    if (timeoutId > -1) return
+    timeoutId = setTimeout(callFunc, wait)
+  }
+}
+var showBeats = false
+document.getElementById('zoom').addEventListener('input', debounce(function () {
+  var val = Number(this.value)
+  wavesurfer.zoom(val)
+  if (val < 25 && showBeats) {
+    waveformEl.classList.remove('show-beats')
+    showBeats = false
+  }
+  if (val > 25 && !showBeats) {
+    waveformEl.classList.add('show-beats')
+    showBeats = true
+  }
+}, 200))
+</script>

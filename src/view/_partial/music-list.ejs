@@ -1,0 +1,37 @@
+<%
+const parsing = music => music.busy ? '正在解析……' : '正在排队……'
+if (entries.length !== 0) {
+%>
+<style>th { text-align: start; }</style>
+<div style="overflow: auto; padding: 16px 0;">
+  <table style="min-width: 900px;">
+    <tr>
+      <th>标题</th>
+      <th>长度</th>
+      <th>情感</th>
+      <th>乐器</th>
+      <th>tempo</th>
+    </tr>
+    <% for (const music of entries) if (music.done) { %>
+    <tr>
+      <td><a href="/audio/<%- music.id %>"><%= music.name %></a></td>
+      <td><%= music.duration.toFixed(2) + 's' %></td>
+      <td><%= music.mood %></td>
+      <td><%= music.instruments.join(', ') %></td>
+      <td><%= music.tempo.toFixed(1) %></td>
+    </tr>
+    <% } else { %>
+    <tr>
+      <td><%= music.name %></td>
+      <td><%= parsing(music) %></td>
+      <td><%= parsing(music) %></td>
+      <td><%= parsing(music) %></td>
+      <td><%= parsing(music) %></td>
+    </tr>
+    <% } %>
+  </table>
+</div>
+<p><a href="/add">添加到曲库</a></p>
+<% } else { %>
+<%- fallback %>
+<% } %>

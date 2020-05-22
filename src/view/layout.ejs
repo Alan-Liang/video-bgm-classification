@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title><%= title %> | vbgmc</title>
+  <style>
+  h1 {
+    font-size: 3rem;
+    font-weight: 200;
+    line-height: 3.125rem;
+    margin: 32px 0;
+  }
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 400;
+    line-height: 2rem;
+    margin: 16px 0;
+  }
+  a { text-decoration: none; color: #0000ee; }
+  a:hover, a:focus, a:active { text-decoration: underline; }
+  a:visited { color: #8a2be2; }
+  @media (min-width: 720px) { body { margin: 32px; } }
+  #idframe {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    --mdc-theme-primary: #000;
+    z-index: 5;
+  }
+  </style>
+</head>
+<body>
+  <div id="idframe"></div>
+  <%- body %>
+  <script src="https://idframe.keeer.net/js/appbar.js"></script>
+  <script>new idFrame.AppBarFrame({ container: '#idframe' })</script>
+</body>
+</html>
