@@ -152,7 +152,8 @@ router.post('/api/add', requireLogin, async ctx => {
         pauses: data[i].pauses,
         pauseCount: data[i].pauses.length,
         mood: res[i].mood,
-        instruments: Object.keys(res[i].instruments)
+        instruments: Object.keys(res[i].instruments),
+        tags: [],
       }
     }))
   }
