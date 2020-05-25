@@ -17,6 +17,7 @@ const { parseQuery } = require('./parse-query')
 const uuid = require('uuid').v4
 const { port, host, databaseFilename, tokenCookieName, kasBase, kasServiceToken, audioPath, isDev } = require('./consts')
 const { delay } = require('./util')
+const { version } = require('../package.json')
 
 const db = new Datastore({
   filename: databaseFilename,
@@ -164,6 +165,23 @@ router.post('/api/add', requireLogin, async ctx => {
 })
 
 app.listen(port, host)
+const figlet = `
+        █                          
+        █                          
+        █                          
+ █░ ░█  █▓██    ██▓█  ██▓█▓   ▓██▒ 
+ ▓▒ ▒▓  █▓ ▓█  █▓ ▓█  █▒█▒█  ▓█  ▓ 
+ ▒█ █▒  █   █  █   █  █ █ █  █░    
+  █ █   █   █  █   █  █ █ █  █     
+  █▓█   █   █  █   █  █ █ █  █░    
+  ▒█▒   █▓ ▓█  █▓ ▓█  █ █ █  ▓█  ▓ 
+  ░█░   █▓██    ██▒█  █ █ █   ▓██▒ 
+                   █               
+ Video BGM      ▓ ▒█           GUI 
+ Classification ▒██░ ${('v' + version).padStart(13, ' ')} 
+`
+console.log(figlet)
+
 consola.ready({
   message: `Server listening on http://${host}:${port}`,
   badge: true,
