@@ -11,4 +11,5 @@ module.exports = Object.freeze({
   instrumentThreshold: Number(env.INSTRUMENT_THRESHOLD),
   audioPath: env.AUDIO_PATH,
   isDev: env.NODE_ENV === 'development',
+  ossBase: env.OSS_BASE ? new URL(env.OSS_BASE) : null,
 })

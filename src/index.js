@@ -15,7 +15,7 @@ const { preprocess } = require('./librosa/interop')
 const { predict } = require('./predict')
 const { parseQuery } = require('./parse-query')
 const uuid = require('uuid').v4
-const { port, host, databaseFilename, tokenCookieName, kasBase, kasServiceToken, audioPath, isDev } = require('./consts')
+const { port, host, databaseFilename, tokenCookieName, kasBase, kasServiceToken, audioPath, isDev, ossBase } = require('./consts')
 const { delay } = require('./util')
 const { version } = require('../package.json')
 
@@ -98,7 +98,7 @@ render(app, {
 })
 
 Object.defineProperty(app.context, 'ejsOpts', {
-  get () { return { require, db, consola, app, ctx: this, kiuid: this.state.user, figlet } },
+  get () { return { require, db, consola, app, ctx: this, kiuid: this.state.user, figlet, ossBase } },
   enumerable: true,
 })
 
