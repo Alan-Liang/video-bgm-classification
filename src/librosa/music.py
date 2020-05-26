@@ -3,7 +3,7 @@ import numpy as np
 import json
 import time
 
-__version__ = 2
+__version__ = 3
 __authors__ = ['Alan-Liang']
 
 
@@ -14,30 +14,38 @@ def maybe_array_from_maybe_ndarray(ndarray):
 
 
 class Music:
-    def __init__(self, filename):
+    def __init__(self, filename, y=None, sr=None):
         start = time.time()
         self.filename = filename
-        self.y, self.sr = librosa.load(filename)
+        if y is None or sr is None:
+            self.y, self.sr = librosa.load(filename)
+        else:
+            self.y, self.sr = y, sr
         self.mfcc = self.onset_envelope = self.onset_frames = self.tempo = self.beats = self.recurrence_matrix = None
         self.chroma = self.viterbi = None  # PEP 8: line too long
         print(f'File {filename} loaded in {time.time() - start} seconds.')
 
-    def dump(self, filename):
+    def data(self, h=None, p=None):
+        return {
+            'filename': self.filename,
+            # 'y': maybe_array_from_maybe_ndarray(self.y),
+            'sr': self.sr,
+            'mfcc': maybe_array_from_maybe_ndarray(self.mfcc),
+            # 'onsetEnvelope': maybe_array_from_maybe_ndarray(self.onset_envelope),
+            'onsetFrames': maybe_array_from_maybe_ndarray(self.onset_frames),
+            'tempo': self.tempo,
+            'beats': maybe_array_from_maybe_ndarray(self.beats),
+            # 'recurrence_matrix': maybe_array_from_maybe_ndarray(self.recurrence_matrix),
+            'chroma': maybe_array_from_maybe_ndarray(self.chroma),
+            'viterbi': maybe_array_from_maybe_ndarray(self.viterbi),
+            'harmonic': h.data() if h is not None else None,
+            'percussive': p.data() if p is not None else None,
+        }
+
+    def dump(self, filename, h=None, p=None):
         start = time.time()
         with open(filename, 'w') as f:
-            json.dump({
-                'filename': self.filename,
-                # 'y': maybe_array_from_maybe_ndarray(self.y),
-                'sr': self.sr,
-                # 'mfcc': maybe_array_from_maybe_ndarray(self.mfcc),
-                'onsetEnvelope': maybe_array_from_maybe_ndarray(self.onset_envelope),
-                'onsetFrames': maybe_array_from_maybe_ndarray(self.onset_frames),
-                'tempo': self.tempo,
-                'beats': maybe_array_from_maybe_ndarray(self.beats),
-                # 'recurrence_matrix': maybe_array_from_maybe_ndarray(self.recurrence_matrix),
-                'chroma': maybe_array_from_maybe_ndarray(self.chroma),
-                'viterbi': maybe_array_from_maybe_ndarray(self.viterbi),
-            }, f)
+            json.dump(self.data(h, p), f)
         print(f'File {self.filename} saved to {filename} in {time.time() - start} seconds.')
 
     def do_mfcc(self):
@@ -79,6 +87,12 @@ class Music:
         p = np.exp(r_normalized) / (1 + np.exp(r_normalized))
         self.viterbi = librosa.sequence.viterbi_discriminative(np.vstack([1 - p, p]), librosa.sequence.transition_loop(2, [0.5, 0.6]))
         print(f'Viterbi done for {self.filename} in {time.time() - start} seconds.')
+
+    def hpss(self):
+        start = time.time()
+        yHarmonic, yPercussive = librosa.effects.hpss(self.y)
+        print(f'HPSS done for {self.filename} in {time.time() - start} seconds.')
+        return Music(f'{self.filename}.harmonic', yHarmonic, self.sr), Music(f'{self.filename}.percussive', yPercussive, self.sr)
 
 if __name__ == '__main__':
     music = Music(input('infile = '))

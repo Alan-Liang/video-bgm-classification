@@ -19,6 +19,23 @@ const { port, host, databaseFilename, tokenCookieName, kasBase, kasServiceToken,
 const { delay } = require('./util')
 const { version } = require('../package.json')
 
+const figlet = `
+        █                          
+        █                          
+        █                          
+ █░ ░█  █▓██    ██▓█  ██▓█▓   ▓██▒ 
+ ▓▒ ▒▓  █▓ ▓█  █▓ ▓█  █▒█▒█  ▓█  ▓ 
+ ▒█ █▒  █   █  █   █  █ █ █  █░    
+  █ █   █   █  █   █  █ █ █  █     
+  █▓█   █   █  █   █  █ █ █  █░    
+  ▒█▒   █▓ ▓█  █▓ ▓█  █ █ █  ▓█  ▓ 
+  ░█░   █▓██    ██▒█  █ █ █   ▓██▒ 
+                   █               
+ Video BGM      ▓ ▒█           GUI 
+ Classification ▒██░ ${('v' + version).padStart(13, ' ')} 
+`
+console.log(figlet)
+
 const db = new Datastore({
   filename: databaseFilename,
   autoload: true,
@@ -81,7 +98,7 @@ render(app, {
 })
 
 Object.defineProperty(app.context, 'ejsOpts', {
-  get () { return { require, db, consola, app, ctx: this, kiuid: this.state.user } },
+  get () { return { require, db, consola, app, ctx: this, kiuid: this.state.user, figlet } },
   enumerable: true,
 })
 
@@ -106,11 +123,9 @@ router.get('/audio/:id/edit', requireLogin, requireOwnAudio, async ctx => {
 router.post('/audio/:id/edit', requireLogin, requireOwnAudio, async ctx => {
   const id = ctx.params.id
   if (!ctx.request.body) return ctx.body = '？？？'
-  const { name, mood, instruments, tempo, tags } = ctx.request.body
-  if (!name || !mood || Number.isNaN(tempo)) return ctx.body = '有未填写的必填项'
-  const patch = { name, mood, tempo: Number(tempo) }
-  if (!instruments) patch.instruments = []
-  else patch.instruments = Array.from(new Set(instruments.split(/,|，/).map(x => x.trim()).filter(x => !!x)))
+  const { name, mood, genre, tempo, tags } = ctx.request.body
+  if (!name || !mood || !genre || Number.isNaN(tempo)) return ctx.body = '有未填写的必填项'
+  const patch = { name, mood, genre, tempo: Number(tempo) }
   if (!tags) patch.tags = []
   else patch.tags = Array.from(new Set(tags.split(/,|，/).map(x => x.trim()).filter(x => !!x)))
   await db.update({ is: 'music', id }, { $set: patch })
@@ -153,8 +168,8 @@ router.post('/api/add', requireLogin, async ctx => {
         pauses: data[i].pauses,
         pauseCount: data[i].pauses.length,
         mood: res[i].mood,
-        instruments: Object.keys(res[i].instruments),
-        tags: [],
+        genre: res[i].genre,
+        tags: Object.keys(res[i].instruments),
       }
     }))
   }
@@ -165,22 +180,6 @@ router.post('/api/add', requireLogin, async ctx => {
 })
 
 app.listen(port, host)
-const figlet = `
-        █                          
-        █                          
-        █                          
- █░ ░█  █▓██    ██▓█  ██▓█▓   ▓██▒ 
- ▓▒ ▒▓  █▓ ▓█  █▓ ▓█  █▒█▒█  ▓█  ▓ 
- ▒█ █▒  █   █  █   █  █ █ █  █░    
-  █ █   █   █  █   █  █ █ █  █     
-  █▓█   █   █  █   █  █ █ █  █░    
-  ▒█▒   █▓ ▓█  █▓ ▓█  █ █ █  ▓█  ▓ 
-  ░█░   █▓██    ██▒█  █ █ █   ▓██▒ 
-                   █               
- Video BGM      ▓ ▒█           GUI 
- Classification ▒██░ ${('v' + version).padStart(13, ' ')} 
-`
-console.log(figlet)
 
 consola.ready({
   message: `Server listening on http://${host}:${port}`,

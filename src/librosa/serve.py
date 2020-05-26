@@ -11,9 +11,15 @@ def process(f):
     music.do_onset_detection()
     music.do_beat_track()
     music.do_chroma()
+    music.do_mfcc()
     music.do_viterbi()
+    h, p = music.hpss()
+    h.do_mfcc()
+    h.do_chroma()
+    p.do_mfcc()
+    p.do_chroma()
     save_file = f'{f}.json'
-    music.dump(save_file)
+    music.dump(save_file, h, p)
     return f'{save_file}|{time.time() - start}'
 
 class ReusableTcpServer(socketserver.TCPServer):

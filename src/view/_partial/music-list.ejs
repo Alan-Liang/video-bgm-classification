@@ -9,8 +9,8 @@ if (entries.length !== 0) {
       <th>标题</th>
       <th>长度</th>
       <th>情感</th>
+      <th>类别</th>
       <th>tempo</th>
-      <th>乐器</th>
       <th>标签</th>
     </tr>
     <% for (const music of entries) if (music.done) { %>
@@ -18,8 +18,8 @@ if (entries.length !== 0) {
       <td><a href="/audio/<%- music.id %>"><%= music.name %></a></td>
       <td><%= music.duration.toFixed(2) + 's' %></td>
       <td><%= music.mood %></td>
+      <td><%= music.genre %></td>
       <td><%= music.tempo.toFixed(1) %></td>
-      <td><%= music.instruments.join(', ') %></td>
       <td><%= music.tags.join(', ') || '（无）' %></td>
     </tr>
     <% } else { %>

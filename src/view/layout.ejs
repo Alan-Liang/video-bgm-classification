@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title><%= title %> | vbgmc</title>
+  <title><%= title %> | 视频智能配乐</title>
   <style>
   h1 {
     font-size: 3rem;
@@ -35,6 +35,9 @@
   <div id="idframe"></div>
   <%- body %>
   <script src="https://idframe.keeer.net/js/appbar.js"></script>
-  <script>new idFrame.AppBarFrame({ container: '#idframe' })</script>
+  <script>
+  new idFrame.AppBarFrame({ container: '#idframe', loginUrl: 'https://account.keeer.net/login?service=vbgmc#login', signupUrl: 'https://account.keeer.net/login?service=vbgmc#signup' })
+  console.log(<%- JSON.stringify(figlet) %>)
+  </script>
 </body>
 </html>

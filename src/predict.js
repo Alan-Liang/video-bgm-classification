@@ -24,27 +24,47 @@ const instrumentNames = [
   'chorus',      'bass',
   'synthesizer', 'accordion',
 ]
+const genreNames = [
+  'classical',          'rock',
+  'ambient',            'jazz & blues',
+  'cinematic',          'dance & electronic',
+  'pop',                'r&b & soul',
+  "children's",         'holiday',
+  'alternative & punk', 'reggae',
+  'hip hop & rap',      'country & folk',
+  'world',
+]
 const moodModelPath = 'file://' + path.resolve(__dirname, '../model/mood/model.json')
 const instrumentsModelPath = 'file://' + path.resolve(__dirname, '../model/instruments/model.json')
+const genreModelPath = 'file://' + path.resolve(__dirname, '../model/genre/model.json')
 const maxLength = 1840
-let moodModel, instrumentsModel
+let moodModel, instrumentsModel, genreModel
 loadLayersModel(moodModelPath).then(m => moodModel = m)
 loadLayersModel(instrumentsModelPath).then(m => instrumentsModel = m)
+loadLayersModel(genreModelPath).then(m => genreModel = m)
 
 exports.predict = async datas => {
   await waitUntil(() => !!moodModel && !!instrumentsModel)
+  const inputTensor = tensor(datas.map(data => normalizeOne(prepareOne(data), maxLength)))
   const moodRes = await moodModel.predict(
-    tensor(datas.map(filePath => normalizeOne(prepareOne(filePath), maxLength))),
+    inputTensor,
     { batchSize: 128 },
   ).mean(1)
    .reshape([ datas.length, 10 ])
    .argMax(1)
    .array()
   const instrumentsRes = await instrumentsModel.predict(
-    tensor(datas.map(data => normalizeOne(prepareOne(data), maxLength))),
+    inputTensor,
     { batchSize: 128 },
   ).mean(1)
    .reshape([ datas.length, 10 ])
+   .array()
+  const genreRes = await genreModel.predict(
+    inputTensor,
+    { batchSize: 128 },
+  ).mean(1)
+   .reshape([ datas.length, 15 ])
+   .argMax(1)
    .array()
   return datas.map((_, i) => {
     const instruments = {}
@@ -52,6 +72,7 @@ exports.predict = async datas => {
     return {
       mood: moodNames[moodRes[i]],
       instruments,
+      genre: genreNames[genreRes[i]],
     }
   })
 }
