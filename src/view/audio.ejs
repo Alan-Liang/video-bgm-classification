@@ -28,7 +28,9 @@ region[data-id^="beatmap"], region[data-id^="onset"] { width: 1px !important; op
 <script src="https://cdn.jsdelivr.net/npm/wavesurfer.js@3.3.3/dist/plugin/wavesurfer.minimap.min.js"></script>
 <%
   const edges = [ [], [] ], { viterbi } = audioData
+  viterbi[0] = viterbi[1] = viterbi[2]
   for (let i = 0; i < viterbi.length - 1; i++) if (viterbi[i] !== viterbi[i + 1]) edges[viterbi[i]].push(i)
+  if (viterbi[0]) edges[0].unshift(0)
   edges[1].push(null)
 %>
 <script>
@@ -68,7 +70,8 @@ var wavesurfer = WaveSurfer.create({
       }).concat(viterbiEdges[1].map(function (_, i) {
         return {
           start: (viterbiEdges[1][i - 1] || 0) * 512 / sr,
-          end: (viterbiEdges[0][i] || duration) * 512 / sr,
+          // eslint-disable-next-line
+          end: (viterbiEdges[0][i] == null ? duration : viterbiEdges[0][i]) * 512 / sr,
           color: 'rgba(0, 255, 0, 0.6)',
           id: 'viterbi-down-' + i,
           drag: false,
