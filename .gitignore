@@ -25,6 +25,8 @@ paper/paper.blg
 paper/paper.log
 paper/paper.out
 paper/paper.pdf
+paper/paper.fdb_latexmk
+paper/paper.fls
 
 .vscode
 .idea
