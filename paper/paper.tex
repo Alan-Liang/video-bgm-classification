@@ -1,6 +1,7 @@
 \documentclass[a4paper,utf8,10pt]{article}
 \usepackage[UTF8]{ctex}
 \usepackage{hyperref, geometry, fontspec, fancyhdr, scalefnt, minted, caption, cite, wrapfig, graphicx}
+\usepackage[affil-it]{authblk}
 
 \geometry{a4paper, top=2cm, left=1.5cm, bottom=1.8cm, right=1.4cm}
 \setlength{\headheight}{0pt}
@@ -29,14 +30,16 @@
 
 \title{基于LSTM的视频配乐智能分类系统的研究与开发}
 \author{梁亚伦　　吴轩南　　李信义 \\ 指导教师　卢婧华　　武迪}
-\date{2020年5月29日}
+\affil{中国人民大学附属中学　　北京　　100080}
+% \date{2020年5月29日}
+\date{}
 
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
-本研究基于 LSTM 算法，来提取音乐的情绪、乐器等信息，实现用户音乐曲库的快速智能分类。根据实验，音乐特征提取效果和程序封装符合预期目标，但特征的准确率有待通过尝试更多算法改进来提高。
+本研究基于 LSTM 算法，来提取音乐的情绪、乐器等信息，实现用户音乐曲库的快速智能分类。根据实验，音乐特征提取效果和程序封装符合预期目标，但特征的准确率有待通过尝试更多算法来改进提高。
 \end{abstract}
 
 \paragraph{关键词} 情绪识别、乐器识别、音频分类、视频配乐
@@ -48,12 +51,12 @@
 
 随着视频社交网络的普及，剪辑微电影、Vlog 剪辑逐渐成为人们记录生活的途径。市面上流行的视频制作软件主要专注于视频剪辑和特效，
 在配乐方面通常曲库都比较简单，情绪和乐器上种类也比较单一。如果制作者想使用自己的音乐，又要花费很多的时间从众多歌曲中挑选自己心仪的音乐上，
-因此我们尝试制作一个智能音乐分类系统，可以自动识别曲库中所有音乐的乐器、情绪、时长等信息，
+本研究尝试制作一个智能音乐分类系统，可以自动识别曲库中所有音乐的乐器、情绪、时长等信息，
 识别成功后制作者可以在搜索框通过搜索所需音乐的特征来对音乐进行筛选，从而更快的找到适合的视频配乐。
 
 \subsection{文献综述}
 
-TODO（N/A）\cite{boixx14}
+TODO（lxy）\cite{boixx14}
 
 \subsection{研究思路}
 
@@ -150,15 +153,32 @@ self.viterbi = librosa.sequence.viterbi_discriminative(
 \somefigure{images/recurrence.800x400.jpg}{自相似矩阵}{fig:selfrec}{p}
 \somefigure{images/viterbi.1045x308.jpg}{Viterbi. 蓝线表示简单阈值处理，黄线表示 Viterbi。}{fig:viterbi}{p}
 
+\subsection{数据正则化}
+
+\indent 从 Audio Library 上得到音乐共 4793 首，其中有效数据 4793 首，无效数据 0 首。我们将其分成两部分，前 4096 首为训练集，后 697 首为测试集，在预处理后得到 58 GB 的 JSON 数据文件。
+如此大量的数据文件对于我们来说不能直接用于训练。对于 K-近邻和支持向量机，我们仅保留了极其有限的数据集（约 3.8 MB），包含每首歌曲的节拍、音符点以及色谱图在每个半音上的平均、标准差、方均根。
+由于我们不能给 K-近邻等算法输入大量数据，我们转而使用 LSTM 算法。我们的数据正则化逻辑如下：
+
+\begin{enumerate}
+  \sept
+  \item 将节拍和音符位置除以总长度，得到一个 $0 \sim 1$ 之间的相对位置；
+  \item 将整首音乐、打击乐部分以及和声部分各自的色谱图以及 MFCC 数据每隔 32 个数据点取一个；
+  \item 对于以上的每个数组，长度不满最大长度 $\displaystyle\frac{1}{4}$ （记为 \texttt{maxLength}）的，用 0 填充至长度 \texttt{maxLength}；长度大于 \texttt{maxLength} 的，截断到长度 \texttt{maxLength}；
+  \item 对于我们的数据而言，$\mathtt{maxLength} = 1840$，将以上部分组合，对于每首音乐即得到一个 $98 \times 1840$ 的矩阵，作为输入张量。
+\end{enumerate}
+
 \subsection{机器学习算法}
 
-我们分别尝试了三种不同的算法：KNN、支持向量机和 LSTM，最终综合可行性和准确率，选择了 LSTM 算法。
+我们分别尝试了三种不同的算法：K-近邻、支持向量机和 LSTM，最终综合可行性和准确率，选择了 LSTM 算法。
 
 我们首先尝试了 K-近邻算法，出现了以下问题：准确度偏低（最高约 26.7\%），无法输入很大的数据；然后尝试了支持向量机（LIBSVM \cite{CC01a}）进行训练，出现了几乎相同的问题；最终我们尝试了 LSTM 算法，准确率较为可观。
 
 \subsubsection{K-近邻算法}
 
-TODO（wxn）
+K-近邻算法理解和实现都较为简单，但是有着一定的局限性。
+
+\paragraph{维度灾难} 以 K-近邻为模型的分类器在使用过多特征时，常常出现过拟合的现象。在我们这次研究中，我们用了大量不同的特征数据来进行训练。这导致利用 K-近邻算法所实现的预测模型往往不能给出准确的预测结果。
+\paragraph{无时序性} 音乐是具有时序性的。若是不考虑音乐的时序性，会导致识别的准确率下降。K-近邻算法无法考虑进数据的时序性。这导致最终利用 K-近邻算法的模型准确率较低。
 
 \subsubsection{LSTM 算法}
 
@@ -173,20 +193,6 @@ LSTM 即长短期记忆网络，它可以学会仅保留相关信息来进行预
 通过输入门选择添加候选细胞信息 $\tilde{C_t}$ 的一部分得到新的细胞信息 $C_t$。
 更新完细胞状态后需要根据输入的和来判断输出细胞的哪些状态特征，这里需要将输入经过一个称为输出门的 sigmoid 层得到判断条件，
 然后将细胞状态经过 tanh 层得到一个 $0 \sim 1$ 之间值的向量，该向量与输出门得到的判断条件相乘就得到了最终该 RNN 单元的输出。
-
-\subsection{数据正则化}
-
-\indent 从 Audio Library 上得到音乐共 4793 首，其中有效数据 4793 首，无效数据 0 首。我们将其分成两部分，前 4096 首为训练集，后 697 首为测试集，在预处理后得到 58 GB 的 JSON 数据文件。
-如此大量的数据文件对于我们来说不能直接用于训练。对于 K-近邻和支持向量机，我们仅保留了极其有限的数据集（约 3.8 MB），包含每首歌曲的节拍、音符点以及色谱图在每个半音上的平均、标准差、方均根。
-由于我们不能给 K-近邻等算法输入大量数据，我们转而使用 LSTM 算法。我们的数据正则化逻辑如下：
-
-\begin{enumerate}
-  \sept
-  \item 将节拍和音符位置除以总长度，得到一个 $0 \sim 1$ 之间的相对位置；
-  \item 将整首音乐、打击乐部分以及和声部分各自的色谱图以及 MFCC 数据每隔 32 个数据点取一个；
-  \item 对于以上的每个数组，长度不满最大长度 $\displaystyle\frac{1}{4}$ （记为 \texttt{maxLength}）的，用 0 填充至长度 \texttt{maxLength}；长度大于 \texttt{maxLength} 的，截断到长度 \texttt{maxLength}；
-  \item 对于我们的数据而言，$\mathtt{maxLength} = 1840$，将以上部分组合，对于每首音乐即得到一个 $98 \times 1840$ 的矩阵，作为输入张量。
-\end{enumerate}
 
 \subsection{训练和预测}
 
@@ -336,19 +342,20 @@ const predicate = music =>
 
 \section{团队分工}
 
-梁亚伦负责训练数据的获取及预处理、训练程序的设计及实现、结果评价、程序封装，以及论文的撰写；
-吴轩南负责前期文献调研、音乐分类体系的设计、宣传短片的拍摄及剪辑，以及论文的撰写；
-李信义负责整理乐器标签，以及论文的撰写。
+梁亚伦负责研究计划的制定、训练数据的获取及预处理、训练程序的设计及实现、结果评价、程序封装的设计及实现，以及论文的撰写；
+吴轩南负责问题的提出及研究目标的确定、研究计划的制定、前期调研、音乐分类体系的建立、交互界面的设计、展示短片的制作，以及论文的撰写；
+李信义负责研究计划的制定、乐器标签的整理，以及论文的撰写。
 
 \section{致谢}
 
-TODO
+在这一学年的学习和研究中，我们收获颇多。
+首先，要特别感谢在过程中给予我们指导和监督的武迪老师与卢婧华老师，老师们在选题指导、思路启发等方面提出了很多宝贵的意见与建议。
+由于疫情原因后半部分的研学课程不能正常在学校开展，老师们通过线上会议的方式有针对性的督促我们高效的完成研学任务，
+还为我们邀请了来自业界领先企业的专家进行点评指导。同时，还要感谢团队成员间的戮力合作和沟通磨合，以及课程助教余锴诚学长的诸多帮助。
+更要感谢参考文献和自由软件的作者们~\cite{tf15}\cite{CC01a}\cite{lstm15}\cite{boixx14}\cite{librosa18}\cite{lstm18}，
+他们的文章和研究成果为我们的项目提供了极大参考和帮助，在此也向他们表示感谢。
 
 \bibliography{paper}{}
 \bibliographystyle{plain}
-
-TODO：move those links to Bib\TeX ; add more refs\\
-\url{https://arxiv.org/pdf/1503.04069v1.pdf}\\
-\url{https://towardsdatascience.com/illustrated-guide-to-lstms-and-gru-s-a-step-by-step-explanation-44e9eb85bf21}
 
 \end{document}
