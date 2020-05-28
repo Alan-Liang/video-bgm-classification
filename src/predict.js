@@ -25,14 +25,15 @@ const instrumentNames = [
   'synthesizer', 'accordion',
 ]
 const genreNames = [
-  'classical',          'rock',
-  'ambient',            'jazz & blues',
-  'cinematic',          'dance & electronic',
-  'pop',                'r&b & soul',
-  "children's",         'holiday',
-  'alternative & punk', 'reggae',
-  'hip hop & rap',      'country & folk',
-  'world',
+  'cinematic',
+  'rock',
+  'ambient',
+  'jazz&blues',
+  'dance&electronic',
+  'pop&hip hop',
+  'r&b&soul',
+  'childrens&holiday',
+  'country&folk',
 ]
 const moodModelPath = 'file://' + path.resolve(__dirname, '../model/mood/model.json')
 const instrumentsModelPath = 'file://' + path.resolve(__dirname, '../model/instruments/model.json')
