@@ -22,7 +22,7 @@ const instrumentNames = [
   'string',      'guitar',
   'woodwind',    'brass',
   'chorus',      'bass',
-  'synthesizer', 'accordion',
+  'synthesizer', 'brass',
 ]
 const genreNames = [
   'cinematic',
