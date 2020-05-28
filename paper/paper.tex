@@ -1,31 +1,35 @@
 \documentclass[a4paper,utf8,10pt]{article}
 \usepackage[UTF8]{ctex}
-\usepackage{hyperref}
-\usepackage{geometry}
-\usepackage{fontspec}
-\usepackage{fancyhdr}
-\usepackage{scalefnt}
-\usepackage{minted}
-\usepackage{cite}
+\usepackage{hyperref, geometry, fontspec, fancyhdr, scalefnt, minted, caption, cite, wrapfig, graphicx}
 
 \geometry{a4paper, top=2cm, left=1.5cm, bottom=1.8cm, right=1.4cm}
 \setlength{\headheight}{0pt}
-
-\pagestyle{empty}
-\linespread{1.56}
-
 \fancypagestyle{plain}{
   \fancyhf{}
   \renewcommand{\headrulewidth}{0pt}
   \renewcommand{\footrulewidth}{0pt}
 }
-
+\pagestyle{empty}
+\linespread{1.56}
 \scalefont{1.05}
+
 \newcommand{\sept}{\setlength\itemsep{-4pt}}
+\newcommand{\somefigure}[4]{
+  \begin{figure}[#4]
+    \begin{center}
+      \vspace{-10pt}
+      \includegraphics[width=0.9\textwidth]{#1}
+      \vspace{-10pt}
+      \caption{#2}
+      \label{#3}
+      \vspace{-10pt}
+    \end{center}
+  \end{figure}
+}
 
 \title{基于LSTM的视频配乐智能分类系统的研究与开发}
-\author{梁亚伦　　吴轩南　　李信义}
-\date{2020年5月22日}
+\author{梁亚伦　　吴轩南　　李信义 \\ 指导教师　卢婧华　　武迪}
+\date{2020年5月29日}
 
 \begin{document}
 
@@ -40,9 +44,32 @@
 
 \section{引言}
 
-随着视频社交网络的普及，剪辑微电影、Vlog 剪辑逐渐成为人们记录生活的途径。市面上流行的视频制作软件主要专注于视频剪辑和特效，在配乐方面通常曲库都比较简单，情绪和乐器上种类也比较单一。如果制作者想使用自己的音乐，又要花费很多的时间从众多歌曲中挑选自己心仪的音乐上，因此我们尝试制作一个智能音乐分类系统，可以自动识别曲库中所有音乐的乐器、情绪、时长等信息，识别成功后制作者可以在搜索框通过搜索所需音乐的特征来对音乐进行筛选，从而更快的找到适合的视频配乐。
+\subsection{研究背景及意义}
+
+随着视频社交网络的普及，剪辑微电影、Vlog 剪辑逐渐成为人们记录生活的途径。市面上流行的视频制作软件主要专注于视频剪辑和特效，
+在配乐方面通常曲库都比较简单，情绪和乐器上种类也比较单一。如果制作者想使用自己的音乐，又要花费很多的时间从众多歌曲中挑选自己心仪的音乐上，
+因此我们尝试制作一个智能音乐分类系统，可以自动识别曲库中所有音乐的乐器、情绪、时长等信息，
+识别成功后制作者可以在搜索框通过搜索所需音乐的特征来对音乐进行筛选，从而更快的找到适合的视频配乐。
+
+\subsection{文献综述}
+
+TODO（N/A）\cite{boixx14}
+
+\subsection{研究思路}
+
+\begin{enumerate}
+  \sept
+  \item 从 Audio Library 上通过爬虫方式获得训练集的音频文件和标签；
+  \item 通过人工核查整理的方式完善标签，包括合并重复或意思相同的标签、去除明显错误的标签等；
+  \item 通过 LibROSA~\cite{librosa18} 提取音乐特征用于训练；
+  \item 使用 LSTM 算法进行训练；
+  \item 将程序封装为可供用户使用的网页。
+\end{enumerate}
 
 \section{研究方法及过程}
+
+\subsection{研究过程}
+
 \noindent\begin{tabular}{ r | l | p{13.5cm} }
 \hline
 序号 & 课题阶段         & 具体内容                                                                                     \\ \hline
@@ -51,112 +78,254 @@
    3 & 准备训练资料     & 编写爬虫程序，从 YouTube Audio Library 上下载用于训练的音频文件和特征集。                    \\ \hline
    4 & 提取关键信息     & 从音乐中提取特征，判断挑出其中对训练模型有用的特征，量化之后作为训练所需要的数据。           \\ \hline
    5 & 初步进行训练     & 选取适当准确的模型，找出各个音乐元素与最终分类之间的关联。                                   \\ \hline
-   6 & 形成分类系统     &                                                                                              \\ \hline
+   6 & 形成分类系统     & 形成适合于视频配乐的音乐分类系统。                                                           \\ \hline
    7 & 算法的完善优化   & 尝试不同的算法，进行进一步的调优等。                                                         \\ \hline
    8 & 封装程序         & 制作可视化界面（网页），并完善最终用户体验。                                                 \\ \hline
 \end{tabular}
 
-\section{音乐分类体系}
+\subsection{音乐分类体系}
 
-\noindent\begin{itemize}
+\begin{itemize}
   \sept
   \item 情绪：开心，伤感等 Audio Library 上所有的情绪。
   \item 节奏变化：开头、中部和结尾的节奏快、中和慢。
   \item 节奏空隙：停顿的数量、时长和停顿在曲目中的位置。
   \item 乐器：使用来自 Audio Library 的乐器数据，并根据情况适当加入一些常用的的乐器。
-  \item 基调：包括一些音乐常有的流派和特性。没有严格的限制，主要强调带给人的主观感受，带给人一种怎样的对音乐氛围的理解。比如：未来感、电影感、嘻哈风、舞曲、电子乐、浪漫、当下流行音乐（最新的音乐）、乡村风格的音乐、怀旧的流行音乐、上世纪流行音乐、经典摇滚、爵士、古典等等。
+  \item 基调：包括一些音乐常有的基调和特性。没有严格的限制，主要强调带给人的主观感受，带给人一种怎样的对音乐氛围的理解。比如：未来感、电影感、嘻哈风、舞曲、电子乐、浪漫、当下流行音乐（最新的音乐）、乡村风格的音乐、怀旧的流行音乐、上世纪流行音乐、经典摇滚、爵士、古典等等。
 \end{itemize}
 
-我们分别尝试了三种不同的算法：KNN、支持向量机和 LSTM，最终综合可行性和准确率，选择了 LSTM 算法，并将程序封装为网页。
+我们使用的情绪有：dramatic（戏剧性的）、 inspirational（激越的）、 funky（放克风的）、 calm（平静的）、 dark（阴暗的）、 happy（高兴的）、 angry（生气的）、 bright（明亮的）、 romantic（浪漫的）、 sad（悲伤的）；
 
-\section{程序具体步骤}
+乐器有：drum（鼓）、Piano（钢琴）、string（弦乐）、guitar（吉他）、woodwind（木管乐器）、brass（铜管乐器）、chorus（合唱）、bass（贝斯）、synthesizer（合成器）；
+
+基调有：cinematic（电影感）、rock（摇滚乐）、ambient（环境乐）、jazz\&blues（爵士乐与蓝调）、dance\&electronic（舞曲与电子乐）、pop\&hip hop（流行乐与嘻哈风）、r\&b\&soul（节奏布鲁斯）、childrens\&holiday（儿童歌曲与节日歌曲）、country\&folk（乡村歌曲）。
+
+\subsection{程序实现步骤}
+
+\begin{enumerate}
+  \sept
+  \item 音乐特征提取：从样本音频文件中提取关键特征用于训练或预测；
+  \item 数据正则化：对预处理得到的 onset、chroma 等数据进行取样并缩放到 $0 \sim 1$ 的范围内，并和节拍数据构成输入的每首音乐 $98 \times 1840$ 的数据矩阵；
+  \item 训练：输入使用 Tensorflow 搭建的双层 LSTM 网络（LSTM $\rightarrow$ dropout (0.2) $\rightarrow$ LSTM $\rightarrow$ 全连接(softmax)）使用 AdamOptimizer 进行训练；
+  \item 预测：加载网络模型并进行预测。
+\end{enumerate}
+
 \subsection{音乐特征提取}
 \paragraph{LibROSA 库} LibROSA 是一个用于音频、音乐分析、处理的 Python 工具包，一些常见的视频处理、特征提取、绘制声音图形等功能应有尽有，功能十分强大。
-我们所提取到的音乐特征：MFCC、Onset、Beat、Self Recurrence Matrix、Chroma、Viterbi、打击乐及和声分离
-我们暂时所利用的特征：Onset、Beat、Chroma、Viterbi、打击乐及和声分离
-
-$\:$\\提取部分所使用的代码：
+我们所提取到的音乐特征：MFCC、Onset、Beat、Self Recurrence Matrix、Chroma、Viterbi、打击乐及和声分离；
+我们暂时所利用的特征：Onset、Beat、Chroma、Viterbi、打击乐及和声分离。提取部分所使用的代码如代码~\ref{lst:music}~所示。
+\captionof{listing}{music.py} \label{lst:music}
 \begin{minted}{python}
 # 提取MFCC
-def do_mfcc(self):
-    self.mfcc = librosa.feature.mfcc(y=self.y, sr=self.sr)
-
+self.mfcc = librosa.feature.mfcc(y=self.y, sr=self.sr)
 # 提取Onset
-def do_onset_detection(self):
-    self.onset_envelope = librosa.onset.onset_strength(y=self.y, sr=self.sr)
-    self.onset_frames = librosa.onset.onset_detect(onset_envelope=self.onset_envelope, sr=self.sr)
-
+self.onset_envelope = librosa.onset.onset_strength(y=self.y, sr=self.sr)
+self.onset_frames = librosa.onset.onset_detect(onset_envelope=self.onset_envelope, sr=self.sr)
 # 提取Beat
-def do_beat_track(self):
-    if self.onset_envelope is None:
-        self.do_onset_detection()
-    self.tempo, self.beats = librosa.beat.beat_track(onset_envelope=self.onset_envelope, sr=self.sr)
-
+self.tempo, self.beats = librosa.beat.beat_track(onset_envelope=self.onset_envelope, sr=self.sr)
 # 提取自相似矩阵
-def do_recurrence_matrix(self):
-    if self.mfcc is None:
-        self.do_mfcc()
-    self.recurrence_matrix = librosa.segment.recurrence_matrix(self.mfcc)
-
+self.recurrence_matrix = librosa.segment.recurrence_matrix(self.mfcc)
 # 提取Chroma
-def do_chroma(self):
-    self.chroma = librosa.feature.chroma_stft(y=self.y, sr=self.sr)
-
+self.chroma = librosa.feature.chroma_stft(y=self.y, sr=self.sr)
 # 提取viterbi
-def do_viterbi(self):
-    rms = librosa.feature.rms(y=self.y)[0]
-    r_normalized = (rms - 0.02) / np.std(rms)
-    p = np.exp(r_normalized) / (1 + np.exp(r_normalized))
-    self.viterbi = librosa.sequence.viterbi_discriminative(np.vstack([1 - p, p]), librosa.sequence.transition_loop(2, [0.5, 0.6]))
+rms = librosa.feature.rms(y=self.y)[0]
+r_normalized = (rms - 0.02) / np.std(rms)
+p = np.exp(r_normalized) / (1 + np.exp(r_normalized))
+self.viterbi = librosa.sequence.viterbi_discriminative(
+  np.vstack([1 - p, p]), librosa.sequence.transition_loop(2, [0.5, 0.6]))
 \end{minted}
 
-\noindent\begin{itemize}
+\begin{itemize}
   \sept
-  \item Onset Detection: 检测音符的起始点。
-  \item MFCC：Mel-frequency cepstral coefficients. 梅尔频率是将音频的频谱进行处理，从而得到适应人耳的音频频谱特征。MFCC即为梅尔频率倒谱系数。
-  \item Self Recurrence Matrix：自相似矩阵。可以用来判断歌曲中重复的部分。
+  \item Onset Detection: 音符的起始点，在界面（见图~\ref{fig:wave}）中用蓝线表示。
+  \item Beat：节拍点，在界面（见图~\ref{fig:wave}）中用黄线表示。
+  \item MFCC（见图~\ref{fig:mfcc}）：Mel-frequency cepstral coefficients. 梅尔频率是将音频的频谱进行处理，从而得到适应人耳的音频频谱特征。MFCC即为梅尔频率倒谱系数。
+  \item Self Recurrence Matrix（见图~\ref{fig:selfrec}）：自相似矩阵。可以用来判断歌曲中重复的部分。
   \item Chroma：音色谱。用于提取音高与乐器的音色。
-  \item Viterbi：可以识别出乐曲之中截断的部分。
+  \item Viterbi（见图~\ref{fig:viterbi}）：可以识别出乐曲之中截断的部分，在界面（见图~\ref{fig:wave}）中用下方红色和绿色的方块表示。
   \item 打击乐及和声分离（HPSS）：将音乐中打击乐部分与和声部分进行分离。
 \end{itemize}
 
+\somefigure{images/mfcc.937x400.jpg}{MFCC}{fig:mfcc}{p}
+\somefigure{images/recurrence.800x400.jpg}{自相似矩阵}{fig:selfrec}{p}
+\somefigure{images/viterbi.1045x308.jpg}{Viterbi. 蓝线表示简单阈值处理，黄线表示 Viterbi。}{fig:viterbi}{p}
+
 \subsection{机器学习算法}
+
+我们分别尝试了三种不同的算法：KNN、支持向量机和 LSTM，最终综合可行性和准确率，选择了 LSTM 算法。
 
 我们首先尝试了 K-近邻算法，出现了以下问题：准确度偏低（最高约 26.7\%），无法输入很大的数据；然后尝试了支持向量机（LIBSVM \cite{CC01a}）进行训练，出现了几乎相同的问题；最终我们尝试了 LSTM 算法，准确率较为可观。
 
-\noindent\begin{itemize}
+\subsubsection{K-近邻算法}
+
+TODO（wxn）
+
+\subsubsection{LSTM 算法}
+
+LSTM 即长短期记忆网络，它可以学会仅保留相关信息来进行预测，而忘记不相关的数据。它由三个门来控制细胞状态，这三个门分别称为忘记门、输入门和输出门。
+忘记门决定了与先前步骤无关的内容，输入门决定从当前步骤开始要添加哪些信息，输出门确定下一个隐藏状态应该是什么。
+
+首先决定细胞状态需要丢弃哪些信息，这部分操作是通过一个称为忘记门的 sigmoid 单元来处理的。它通过查看 $h_{t-1}$ 和 $h_t$ 信息来输出一个 $0 \sim 1$ 之间的向量，
+该向量里面的 $0 \sim 1$ 值表示细胞状态中的哪些信息保留或丢弃多少。其中，0 表示不保留，1 表示都保留。之后是决定给细胞状态添加哪些新的信息。
+这一步又分为两个步骤，首先，利用 $h_{t-1}$ 和 $x_t$ 通过一个称为输入门的操作来决定更新哪些信息。
+然后利用 $h_{t-1}$ 和 $x_t$ 通过一个 tanh 层得到新的候选细胞信息 $\tilde{C_t}$，这些信息可能会被更新到细胞信息中。
+然后将更新旧的细胞信息 $C_{t-1}$，变为新的细胞信息 $C_t$。更新的规则就是通过忘记门选择忘记旧细胞信息的一部分，
+通过输入门选择添加候选细胞信息 $\tilde{C_t}$ 的一部分得到新的细胞信息 $C_t$。
+更新完细胞状态后需要根据输入的和来判断输出细胞的哪些状态特征，这里需要将输入经过一个称为输出门的 sigmoid 层得到判断条件，
+然后将细胞状态经过 tanh 层得到一个 $0 \sim 1$ 之间值的向量，该向量与输出门得到的判断条件相乘就得到了最终该 RNN 单元的输出。
+
+\subsection{数据正则化}
+
+\indent 从 Audio Library 上得到音乐共 4793 首，其中有效数据 4793 首，无效数据 0 首。我们将其分成两部分，前 4096 首为训练集，后 697 首为测试集，在预处理后得到 58 GB 的 JSON 数据文件。
+如此大量的数据文件对于我们来说不能直接用于训练。对于 K-近邻和支持向量机，我们仅保留了极其有限的数据集（约 3.8 MB），包含每首歌曲的节拍、音符点以及色谱图在每个半音上的平均、标准差、方均根。
+由于我们不能给 K-近邻等算法输入大量数据，我们转而使用 LSTM 算法。我们的数据正则化逻辑如下：
+
+\begin{enumerate}
   \sept
-  \item 数据正则化：对预处理得到的 onset、chroma 等数据进行取样并缩放到 0-1 的范围内，并和节拍数据构成输入的每首音乐 $98\times 1840$ 的数据矩阵；
-  \item 训练：输入使用 Tensorflow 搭建的双层 LSTM 网络（LSTM $\rightarrow$ dropout (0.2) $\rightarrow$ LSTM $\rightarrow$ 全连接(softmax)）使用 AdamOptimizer 进行训练；
-  \item 预测：加载网络模型并进行预测。
-\end{itemize}
+  \item 将节拍和音符位置除以总长度，得到一个 $0 \sim 1$ 之间的相对位置；
+  \item 将整首音乐、打击乐部分以及和声部分各自的色谱图以及 MFCC 数据每隔 32 个数据点取一个；
+  \item 对于以上的每个数组，长度不满最大长度 $\displaystyle\frac{1}{4}$ （记为 \texttt{maxLength}）的，用 0 填充至长度 \texttt{maxLength}；长度大于 \texttt{maxLength} 的，截断到长度 \texttt{maxLength}；
+  \item 对于我们的数据而言，$\mathtt{maxLength} = 1840$，将以上部分组合，对于每首音乐即得到一个 $98 \times 1840$ 的矩阵，作为输入张量。
+\end{enumerate}
+
+\subsection{训练和预测}
+
+\noindent 我们采用 TensorFlow~\cite{tf15} 框架进行训练及预测。核心部分代码如代码~\ref{lst:train}~所示。
+\captionof{listing}{train.js} \label{lst:train}
+\begin{minted}{javascript}
+// 定义模型
+const model = sequential()
+model.add(lstm({ units, inputShape, returnSequences: true })) // LSTM, units = 128
+model.add(dropout(0.2))                                       // Dropout
+model.add(lstm({ units, returnSequences: true }))             // LSTM
+model.add(dense({ units: nClasses, activation: 'softmax' }))  // Softmax
+
+// 运行模型
+;(async () => {
+  // TODO: 这两行是否留在论文里？
+  // 如果是之前训练到一半接着训练的把下面一行取消注释，把上面一段注释掉
+  // const model = await loadLayersModel('file://./model-30/model.json')
+
+  // 定义训练方法
+  model.compile({
+    loss: 'categoricalCrossentropy', // 交叉熵
+    optimizer: adam(learningRate),
+    metrics: [ 'acc' ],
+  })
+  // 进行训练
+  await model.fitDataset(
+    dataset.batch(batchSize, false),
+    { epochs, callbacks: {
+      // 中途保存训练数据
+      onEpochEnd(epoch) {
+        if (epoch % 10 === 0) model.save(savePath + epoch)
+      },
+    } }
+  )
+  await model.save(savePath)
+})().catch(e => {
+  // 捕获训练中的异常并报错
+  console.error(e && e.stack || e)
+  process.exit(1)
+})
+\end{minted}
 
 \section{成果与展望}
 \subsection{算法训练结果}
-经过训练和测试，三种算法对音乐特征进行识别的准确率如下表：
+
+经过训练和测试，三种算法对音乐特征进行识别的准确率如表~\ref{tab:acc}~所示。这些准确率都是在验证集而非训练集上产生的。
+
+其中对于 LSTM，我们进一步进行了混淆矩阵的计算，结果如表~\ref{tab:moodcm}、表~\ref{tab:genrecm}~所示。
 
 \begin{center}
-\begin{tabular}{ r | l | l }
+% 请不要编辑下面的两个表格，谢谢！
+
+\captionof{table}{情绪混淆矩阵（出于空间限制，部分情感只显示前面一部分字符，下同）} \label{tab:moodcm}
+\begin{tabular}{ | r r | r | r | r | r | r | r | r | r | r | r | }
 \hline
-        音乐特征 & 情绪 & 流派 \\ \hline
-K-近邻算法准确率 & 85\% &      \\ \hline
-支持向量机准确率 & 85\% &      \\ \hline
- LSTM 算法准确率 & 85\% &      \\ \hline
+ & \bf 预测 & \bf calm & \bf dark & \bf sad & \bf drama & \bf funky & \bf happy & \bf bright & \bf roman & \bf inspi & \bf angry \\
+\bf 实际 & & 17.0\% & 14.1\% & 1.0\% & 20.7\% & 9.4\% & 21.1\% & 10.7\% & 0.2\% & 3.5\% & 2.3\% \\\hline
+\bf calm & 14.3\% & 11.7\% & 0.6\% & 0.0\% & 0.4\% & 0.0\% & 0.6\% & 0.6\% & 0.0\% & 0.4\% & 0.0\% \\\hline
+\bf dark & 12.7\% & 0.4\% & 10.9\% & 0.0\% & 0.6\% & 0.4\% & 0.2\% & 0.0\% & 0.0\% & 0.0\% & 0.2\% \\\hline
+\bf sad & 3.3\% & 1.2\% & 0.2\% & 1.0\% & 0.2\% & 0.0\% & 0.2\% & 0.6\% & 0.0\% & 0.0\% & 0.0\% \\\hline
+\bf drama & 18.0\% & 0.2\% & 0.2\% & 0.0\% & 15.8\% & 0.0\% & 0.6\% & 1.2\% & 0.0\% & 0.0\% & 0.0\% \\\hline
+\bf funky & 11.5\% & 0.6\% & 1.2\% & 0.0\% & 0.4\% & 7.8\% & 1.4\% & 0.2\% & 0.0\% & 0.0\% & 0.0\% \\\hline
+\bf happy & 17.2\% & 0.4\% & 0.2\% & 0.0\% & 0.4\% & 0.2\% & 15.6\% & 0.2\% & 0.0\% & 0.0\% & 0.2\% \\\hline
+\bf bright & 10.4\% & 0.4\% & 0.4\% & 0.0\% & 0.8\% & 0.2\% & 1.2\% & 7.4\% & 0.0\% & 0.0\% & 0.0\% \\\hline
+\bf roman & 2.7\% & 1.4\% & 0.2\% & 0.0\% & 0.4\% & 0.0\% & 0.2\% & 0.6\% & 0.0\% & 0.0\% & 0.0\% \\\hline
+\bf inspi & 6.4\% & 0.8\% & 0.2\% & 0.0\% & 1.2\% & 0.4\% & 0.6\% & 0.0\% & 0.2\% & 3.1\% & 0.0\% \\\hline
+\bf angry & 3.5\% & 0.0\% & 0.0\% & 0.0\% & 0.6\% & 0.4\% & 0.6\% & 0.0\% & 0.0\% & 0.0\% & 2.0\% \\\hline
 \end{tabular}
+
+\captionof{table}{基调混淆矩阵} \label{tab:genrecm}
+\begin{tabular}{ | r r | r | r | r | r | r | r | r | r | r | }
+\hline
+ & \bf 预测 & \bf cine & \bf rock & \bf amb & \bf jazz & \bf dance & \bf pop & \bf r\&b & \bf child & \bf count \\
+\bf 实际 & & 24.2\% & 13.3\% & 8.0\% & 3.3\% & 17.6\% & 18.8\% & 6.3\% & 1.2\% & 7.4\% \\\hline
+\bf cine & 21.9\% & 20.3\% & 0.4\% & 0.0\% & 0.0\% & 0.4\% & 0.4\% & 0.0\% & 0.0\% & 0.4\% \\\hline
+\bf rock & 12.3\% & 0.2\% & 11.5\% & 0.0\% & 0.0\% & 0.6\% & 0.0\% & 0.0\% & 0.0\% & 0.0\% \\\hline
+\bf amb & 9.0\% & 1.2\% & 0.0\% & 7.4\% & 0.0\% & 0.2\% & 0.2\% & 0.0\% & 0.0\% & 0.0\% \\\hline
+\bf jazz & 5.3\% & 0.4\% & 0.2\% & 0.0\% & 3.1\% & 1.0\% & 0.4\% & 0.0\% & 0.0\% & 0.2\% \\\hline
+\bf dance & 16.0\% & 0.2\% & 0.2\% & 0.4\% & 0.0\% & 14.1\% & 1.2\% & 0.0\% & 0.0\% & 0.0\% \\\hline
+\bf pop & 17.0\% & 0.6\% & 0.0\% & 0.0\% & 0.0\% & 0.8\% & 15.6\% & 0.0\% & 0.0\% & 0.0\% \\\hline
+\bf r\&b & 7.8\% & 0.2\% & 0.4\% & 0.0\% & 0.0\% & 0.6\% & 0.4\% & 6.1\% & 0.0\% & 0.2\% \\\hline
+\bf child & 3.1\% & 1.0\% & 0.0\% & 0.0\% & 0.2\% & 0.0\% & 0.4\% & 0.0\% & 1.2\% & 0.4\% \\\hline
+\bf count & 7.6\% & 0.2\% & 0.6\% & 0.2\% & 0.0\% & 0.0\% & 0.2\% & 0.2\% & 0.0\% & 6.3\% \\\hline
+\end{tabular}
+
 \end{center}
 
 经过最终的调试，我们选择了准确率较高的 LSTM 算法，并进行程序封装。
 
+\begin{wraptable}{R}{6cm}
+\vspace{-50pt}
+\caption{不同算法准确率对比} \label{tab:acc}
+\begin{tabular}{ c | r | r }
+\hline
+           &   情绪 &           基调 \\ \hline
+K-近邻算法 & 26.8\% & （未进行训练） \\ \hline
+支持向量机 & 28.4\% & （未进行训练） \\ \hline
+ LSTM 算法 & 75.4\% &         85.5\% \\ \hline
+\end{tabular}
+\vspace{-10pt}
+\end{wraptable}
+
 \subsection{程序封装}
+
+\somefigure{images/wave.1522x434.jpg}{最终用户界面上显示的波形图。当前位置用红线表示，音符用蓝线表示，节拍用黄线表示，Viterbi 数据用下方红色和绿色的方块表示。}{fig:wave}{h}
+
 我们将智能配乐分类系统封装为了网页程序，用户可以通过上传音乐来创建自己的曲库，上传成功后，系统会自动排队解析；
-解析成功后程序会以列表形式展示各配乐的参数，用户可以通过在在搜索栏输入限制条件来查找自己需要的配乐，程序会在曲库中筛选，并列出符合用户需求的音乐；
-用户可以通过点击配乐名称来查看单首配乐的详细信息，包含长度、情感、乐器等参数和音乐波形图（并展示停顿、节拍等信息），用户还可以通过编辑功能来矫正自己认为识别不够准确的标签。
+解析成功后程序会以列表形式展示各配乐的参数，用户可以通过在在搜索栏输入限制条件（见代码~\ref{lst:search}）来查找自己需要的配乐，程序会在曲库中筛选，并列出符合用户需求的音乐；
+用户可以通过点击配乐名称来查看单首配乐的详细信息，包含长度、情感、乐器等参数和音乐波形图（并展示停顿、节拍等信息，见图~\ref{fig:wave}），用户还可以通过编辑功能来矫正自己认为识别不够准确的标签。
+
+\begin{figure}
+\vspace{-20pt}
+\captionof{listing}{搜索示例} \label{lst:search}
+示例搜索：\texttt{piano, dur in 80-100 / (duration in 10-20, calm), tempo around 120, no pause-time > 10, stop <= 5, not time in 90 - 120}\\
+含义为：找出标签含有 \texttt{piano}，并且要么长度在 80 到 100 秒之间，要么长度在 10 到 20 秒之间并且情感是 \texttt{calm}；并且节拍大约为 120 bpm，并且没有大于 10 秒的停顿，并且停顿数量少于 5 处，并且长度不在 90 到 120 秒之间的音乐。\\
+转换成代码：
+\begin{minted}{javascript}
+const predicate = music =>
+  (music.tags.includes('piano') || music.mood === 'piano' || music.genre === 'piano') &&
+  (
+    (music.duration >= 80 && music.duration <= 100) ||
+    (
+      music.duration >= 10 && music.duration <= 20 &&
+      (music.tags.includes('calm') || music.mood === 'calm' || music.genre === 'calm')
+    )
+  ) &&
+  music.tempo >= 104 && music.tempo <= 136 &&
+  !music.pauses.some(pause => pause > 10) &&
+  music.pauses.length <= 5 &&
+  !(music.time >= 90 && music.time <= 120)
+\end{minted}
+\end{figure}
 
 \subsection{未来的完善方向}
-\noindent\begin{itemize}
+\begin{itemize}
   \sept
   \item 尝试其他音乐特征\\
-  尝试使用 MFCC, Onset, Beat, Self Recurrence Matrix, Chroma, Viterbi 等其他音乐特征，并增加到程序中；
+  尝试使用自相似矩阵等其他音乐特征，并增加到程序中；
   \item 尝试其他神经网络\\
   使用其他神经网络进行实验，找到更适合的算法，以进一步提升程序对音乐特征（情绪、乐器等）识别的准确率；
   \item 增加用户反馈模块\\
@@ -165,10 +334,21 @@ K-近邻算法准确率 & 85\% &      \\ \hline
   通过接入的用户登录，记录用户行为，在后期实现程序可以自动根据用户平时挑选音乐的风格偏好在首页智能推荐用户可能需要的配乐。
 \end{itemize}
 
+\section{团队分工}
+
+梁亚伦负责训练数据的获取及预处理、训练程序的设计及实现、结果评价、程序封装，以及论文的撰写；
+吴轩南负责前期文献调研、音乐分类体系的设计、宣传短片的拍摄及剪辑，以及论文的撰写；
+李信义负责整理乐器标签，以及论文的撰写。
+
+\section{致谢}
+
+TODO
+
 \bibliography{paper}{}
 \bibliographystyle{plain}
 
-\url{https://arxiv.org/pdf/1503.04069v1.pdf}
+TODO：move those links to Bib\TeX ; add more refs\\
+\url{https://arxiv.org/pdf/1503.04069v1.pdf}\\
 \url{https://towardsdatascience.com/illustrated-guide-to-lstms-and-gru-s-a-step-by-step-explanation-44e9eb85bf21}
 
 \end{document}
