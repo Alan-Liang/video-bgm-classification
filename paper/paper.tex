@@ -28,8 +28,8 @@
   \end{figure}
 }
 
-\title{基于LSTM的视频配乐智能分类系统的研究与开发}
-\author{梁亚伦　　吴轩南　　李信义 \\ 指导教师　卢婧华　　武迪}
+\title{基于 LSTM 的视频配乐智能分类系统的研究与开发}
+\author{梁亚伦　　吴轩南　　李信义 \\ 指导教师：　卢婧华　　武迪}
 \affil{中国人民大学附属中学　　北京　　100080}
 % \date{2020年5月29日}
 \date{}
@@ -50,19 +50,15 @@
 \subsection{研究背景及意义}
 
 随着视频社交网络的普及，剪辑微电影、Vlog 剪辑逐渐成为人们记录生活的途径。市面上流行的视频制作软件主要专注于视频剪辑和特效，
-在配乐方面通常曲库都比较简单，情绪和乐器上种类也比较单一。如果制作者想使用自己的音乐，又要花费很多的时间从众多歌曲中挑选自己心仪的音乐上，
+在配乐方面通常曲库都比较简单，情绪和乐器上种类也比较单一~\cite{boixx14}。如果制作者想使用自己的音乐，又要花费很多的时间从众多歌曲中挑选自己心仪的音乐上，
 本研究尝试制作一个智能音乐分类系统，可以自动识别曲库中所有音乐的乐器、情绪、时长等信息，
 识别成功后制作者可以在搜索框通过搜索所需音乐的特征来对音乐进行筛选，从而更快的找到适合的视频配乐。
-
-\subsection{文献综述}
-
-TODO（lxy）\cite{boixx14}
 
 \subsection{研究思路}
 
 \begin{enumerate}
   \sept
-  \item 从 Audio Library 上通过爬虫方式获得训练集的音频文件和标签；
+  \item 从 YouTube Audio Library~\cite{yal} 上通过爬虫方式获得训练集的音频文件和标签；
   \item 通过人工核查整理的方式完善标签，包括合并重复或意思相同的标签、去除明显错误的标签等；
   \item 通过 LibROSA~\cite{librosa18} 提取音乐特征用于训练；
   \item 使用 LSTM 算法进行训练；
@@ -73,6 +69,10 @@ TODO（lxy）\cite{boixx14}
 
 \subsection{研究过程}
 
+参见表~\ref{tab:process}。
+
+\begin{table}
+\caption{研究过程} \label{tab:process}
 \noindent\begin{tabular}{ r | l | p{13.5cm} }
 \hline
 序号 & 课题阶段         & 具体内容                                                                                     \\ \hline
@@ -85,6 +85,7 @@ TODO（lxy）\cite{boixx14}
    7 & 算法的完善优化   & 尝试不同的算法，进行进一步的调优等。                                                         \\ \hline
    8 & 封装程序         & 制作可视化界面（网页），并完善最终用户体验。                                                 \\ \hline
 \end{tabular}
+\end{table}
 
 \subsection{音乐分类体系}
 
@@ -175,7 +176,7 @@ self.viterbi = librosa.sequence.viterbi_discriminative(
 
 \subsubsection{K-近邻算法}
 
-K-近邻算法理解和实现都较为简单，但是有着一定的局限性。
+K-近邻算法等传统算法理解和实现都较为简单，但是有着一定的局限性。
 
 \paragraph{维度灾难} 以 K-近邻为模型的分类器在使用过多特征时，常常出现过拟合的现象。在我们这次研究中，我们用了大量不同的特征数据来进行训练。这导致利用 K-近邻算法所实现的预测模型往往不能给出准确的预测结果。
 \paragraph{无时序性} 音乐是具有时序性的。若是不考虑音乐的时序性，会导致识别的准确率下降。K-近邻算法无法考虑进数据的时序性。这导致最终利用 K-近邻算法的模型准确率较低。
@@ -303,13 +304,15 @@ K-近邻算法 & 26.8\% & （未进行训练） \\ \hline
 我们将智能配乐分类系统封装为了网页程序，用户可以通过上传音乐来创建自己的曲库，上传成功后，系统会自动排队解析；
 解析成功后程序会以列表形式展示各配乐的参数，用户可以通过在在搜索栏输入限制条件（见代码~\ref{lst:search}）来查找自己需要的配乐，程序会在曲库中筛选，并列出符合用户需求的音乐；
 用户可以通过点击配乐名称来查看单首配乐的详细信息，包含长度、情感、乐器等参数和音乐波形图（并展示停顿、节拍等信息，见图~\ref{fig:wave}），用户还可以通过编辑功能来矫正自己认为识别不够准确的标签。
+我们使用这一系统拍摄了一个演示视频，见~\url{https://www.bilibili.com/video/av625750106}。
 
-\begin{figure}
-\vspace{-20pt}
+\floatstyle{boxed}
+\restylefloat{figure}
+\begin{figure}[h]
 \captionof{listing}{搜索示例} \label{lst:search}
-示例搜索：\texttt{piano, dur in 80-100 / (duration in 10-20, calm), tempo around 120, no pause-time > 10, stop <= 5, not time in 90 - 120}\\
-含义为：找出标签含有 \texttt{piano}，并且要么长度在 80 到 100 秒之间，要么长度在 10 到 20 秒之间并且情感是 \texttt{calm}；并且节拍大约为 120 bpm，并且没有大于 10 秒的停顿，并且停顿数量少于 5 处，并且长度不在 90 到 120 秒之间的音乐。\\
-转换成代码：
+\paragraph{示例搜索文本} \texttt{piano, dur in 80-100 / (duration in 10-20, calm), tempo around 120, no pause-time > 10, stop <= 5, not time in 90 - 120}
+\paragraph{含义} 找出标签含有 \texttt{piano}，并且要么长度在 80 到 100 秒之间，要么长度在 10 到 20 秒之间并且情感是 \texttt{calm}；并且节拍大约为 120 bpm，并且没有大于 10 秒的停顿，并且停顿数量少于 5 处，并且长度不在 90 到 120 秒之间的音乐。
+\paragraph{对应代码}
 \begin{minted}{javascript}
 const predicate = music =>
   (music.tags.includes('piano') || music.mood === 'piano' || music.genre === 'piano') &&
@@ -330,6 +333,8 @@ const predicate = music =>
 \subsection{未来的完善方向}
 \begin{itemize}
   \sept
+  \item 分类乐器\\
+  由于本研究数据源中乐器标签过于混乱，乐器识别功能基本不可用。后续可以找到更好的数据源进行识别；
   \item 尝试其他音乐特征\\
   尝试使用自相似矩阵等其他音乐特征，并增加到程序中；
   \item 尝试其他神经网络\\
@@ -344,7 +349,7 @@ const predicate = music =>
 
 梁亚伦负责研究计划的制定、训练数据的获取及预处理、训练程序的设计及实现、结果评价、程序封装的设计及实现，以及论文的撰写；
 吴轩南负责问题的提出及研究目标的确定、研究计划的制定、前期调研、音乐分类体系的建立、交互界面的设计、展示短片的制作，以及论文的撰写；
-李信义负责研究计划的制定、乐器标签的整理，以及论文的撰写。
+李信义负责研究计划的制定、乐器标签的整理、算法的调研，以及论文的撰写。
 
 \section{致谢}
 
