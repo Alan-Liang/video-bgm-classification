@@ -25,6 +25,11 @@ paper/paper.blg
 paper/paper.log
 paper/paper.out
 paper/paper.pdf
+paper/paper.fdb_latexmk
+paper/paper.fls
+paper/paper.pyg
+paper/_minted-paper
+paper/images
 
 .vscode
 .idea

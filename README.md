@@ -30,8 +30,9 @@ sudo -H pip3 install -r requirements.txt
 ```
 
 **Get model weights**:
+Get the weights files at the [releases page](https://github.com/Alan-Liang/music-gui/releases) and execute:
 ```shell
-echo TODO && exit 1
+tar zxf model.tar.gz
 ```
 
 **Configure the server**:
